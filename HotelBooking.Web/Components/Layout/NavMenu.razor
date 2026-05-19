@@ -1,0 +1,72 @@
+﻿<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">HotelBooking.Web</a>
+    </div>
+</div>
+
+<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+
+<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
+    <nav class="flex-column">
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="rooms">
+                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Номера
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="bookings/new">
+                <span class="bi bi-calendar-plus-nav-menu" aria-hidden="true"></span> Новое бронирование
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="bookings">
+                <span class="bi bi-calendar-check-nav-menu" aria-hidden="true"></span> Бронирования
+            </NavLink>
+        </div>
+
+        <AuthorizeView>
+            @* <Authorized>
+                <div class="nav-item px-3">
+                    <span class="nav-link text-light">Привет, @context.User.Identity?.Name!</span>
+                </div>
+                <div class="nav-item px-3">
+                    <form method="post" action="/Account/Logout" class="d-inline">
+                        <button type="submit" class="nav-link btn btn-link text-light">Выйти</button>
+                    </form>
+                </div>
+            </Authorized>
+            <NotAuthorized>
+                <div class="nav-item px-3">
+                    <a class="nav-link" href="/Account/Login">Вход</a>
+                </div>
+                <div class="nav-item px-3">
+                    <a class="nav-link" href="/Account/Register">Регистрация</a>
+                </div>
+            </NotAuthorized> *@
+            <Authorized>
+                <div class="nav-item px-3">
+                    <span class="nav-link text-light">
+                        <span class="bi bi-person-circle me-1"></span>
+                        @(context.User.Identity?.Name?.Split('@')[0])
+                    </span>
+                </div>
+                <div class="nav-item px-3">
+                    <form method="post" action="/Account/Logout" class="d-inline">
+                        <button type="submit" class="nav-link btn btn-link text-light p-0">
+                            <span class="bi bi-box-arrow-right me-1"></span>Выйти
+                        </button>
+                    </form>
+                </div>
+            </Authorized>
+        </AuthorizeView>
+    </nav>
+</div>
+

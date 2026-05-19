@@ -1,0 +1,280 @@
+﻿@* @page "/rooms"
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Authorization
+@using HotelBooking.Core.Models
+@using HotelBooking.Core.Services
+@inject IRoomService RoomService
+@inject AuthenticationStateProvider AuthStateProvider
+
+<PageTitle>Номера отеля</PageTitle>
+
+<h3>Номера отеля</h3>
+
+<AuthorizeView Roles="Admin">
+    <Authorized>
+        <div class="card mb-4">
+            <div class="card-header">Добавить новый номер</div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-2">
+                        <input type="text" class="form-control" placeholder="Номер" @bind="newRoom.Number" />
+                    </div>
+                    <div class="col-md-2">
+                        <input type="text" class="form-control" placeholder="Тип" @bind="newRoom.Type" />
+                    </div>
+                    <div class="col-md-2">
+                        <input type="number" class="form-control" placeholder="Вместимость" @bind="newRoom.Capacity" />
+                    </div>
+                    <div class="col-md-2">
+                        <input type="number" class="form-control" placeholder="Цена" @bind="newRoom.PricePerNight" />
+                    </div>
+                    <div class="col-md-3">
+                        <input type="text" class="form-control" placeholder="Описание" @bind="newRoom.Description" />
+                    </div>
+                    <div class="col-md-1">
+                        <button class="btn btn-success w-100" @onclick="AddRoom">+</button>
+                    </div>
+                </div>
+                @if (!string.IsNullOrEmpty(addMessage))
+                {
+                    <div class="alert @(addSuccess ? "alert-success" : "alert-danger") mt-2">@addMessage</div>
+                }
+            </div>
+        </div>
+    </Authorized>
+</AuthorizeView>
+
+@if (rooms == null)
+{
+    <p>Загрузка...</p>
+}
+else if (!rooms.Any())
+{
+    <p>Номера не найдены.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Номер</th>
+                <th>Тип</th>
+                <th>Вместимость</th>
+                <th>Цена за ночь</th>
+                <th>Описание</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var room in rooms)
+            {
+                <tr>
+                    <td>@room.Number</td>
+                    <td>@room.Type</td>
+                    <td>@room.Capacity чел.</td>
+                    <td>@room.PricePerNight.ToString("C")</td>
+                    <td>@room.Description</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Room>? rooms;
+    private Room newRoom = new() { IsAvailable = true };
+    private string? addMessage;
+    private bool addSuccess;
+
+    protected override async Task OnInitializedAsync()
+    {
+        rooms = await RoomService.GetAllAsync();
+    }
+
+    private async Task AddRoom()
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(newRoom.Number) || string.IsNullOrWhiteSpace(newRoom.Type))
+            {
+                addMessage = "Номер и тип обязательны";
+                addSuccess = false;
+                return;
+            }
+
+            if (newRoom.PricePerNight <= 0 || newRoom.Capacity <= 0)
+            {
+                addMessage = "Цена и вместимость должны быть больше 0";
+                addSuccess = false;
+                return;
+            }
+
+            var added = await RoomService.AddAsync(newRoom);
+            Console.WriteLine($"Добавлен номер: Id={added.Id}, Number={added.Number}");
+            
+            rooms = await RoomService.GetAllAsync();
+            Console.WriteLine($"Всего номеров: {rooms?.Count}");
+            
+            addMessage = $"Номер {added.Number} добавлен!";
+            addSuccess = true;
+            newRoom = new Room() { IsAvailable = true };
+        }
+        catch (Exception ex)
+        {
+            addMessage = $"Ошибка: {ex.Message}";
+            addSuccess = false;
+            Console.WriteLine($"Ошибка добавления: {ex}");
+        }
+    }
+} *@
+@page "/rooms"
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Authorization
+@using HotelBooking.Core.Models
+@using HotelBooking.Core.Services
+@inject IRoomService RoomService
+@inject AuthenticationStateProvider AuthStateProvider
+
+<PageTitle>Номера отеля</PageTitle>
+
+<h3>Номера отеля</h3>
+
+<AuthorizeView Roles="Admin">
+    <Authorized>
+        <div class="card mb-4">
+            <div class="card-header">Добавить новый номер</div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-2">
+                        <input type="text" class="form-control" placeholder="Номер" @bind="newRoom.Number" />
+                    </div>
+                    <div class="col-md-2">
+                        <input type="text" class="form-control" placeholder="Тип" @bind="newRoom.Type" />
+                    </div>
+                    <div class="col-md-2">
+                        <input type="number" class="form-control" placeholder="Вместимость" @bind="newRoom.Capacity" />
+                    </div>
+                    <div class="col-md-2">
+                        <input type="number" class="form-control" placeholder="Цена" @bind="newRoom.PricePerNight" />
+                    </div>
+                    <div class="col-md-3">
+                        <input type="text" class="form-control" placeholder="Описание" @bind="newRoom.Description" />
+                    </div>
+                    <div class="col-md-1">
+                        <button class="btn btn-success w-100" @onclick="AddRoom">+</button>
+                    </div>
+                </div>
+                @if (!string.IsNullOrEmpty(addMessage))
+                {
+                    <div class="alert @(addSuccess ? "alert-success" : "alert-danger") mt-2">@addMessage</div>
+                }
+            </div>
+        </div>
+    </Authorized>
+</AuthorizeView>
+
+@if (rooms == null)
+{
+    <p>Загрузка...</p>
+}
+else if (!rooms.Any())
+{
+    <p>Номера не найдены.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Номер</th>
+                <th>Тип</th>
+                <th>Вместимость</th>
+                <th>Цена за ночь</th>
+                <th>Описание</th>
+                <AuthorizeView Roles="Admin"><Authorized><th>Действия</th></Authorized></AuthorizeView>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var room in rooms)
+            {
+                <tr>
+                    <td>@room.Number</td>
+                    <td>@room.Type</td>
+                    <td>@room.Capacity чел.</td>
+                    <td>@room.PricePerNight.ToString("C")</td>
+                    <td>@room.Description</td>
+                    <AuthorizeView Roles="Admin">
+                        <Authorized>
+                            <td>
+                                <button class="btn btn-sm btn-danger" @onclick="() => DeleteRoom(room.Id)">Удалить</button>
+                            </td>
+                        </Authorized>
+                    </AuthorizeView>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Room>? rooms;
+    private Room newRoom = new() { IsAvailable = true };
+    private string? addMessage;
+    private bool addSuccess;
+
+    protected override async Task OnInitializedAsync()
+    {
+        rooms = await RoomService.GetAllAsync();
+    }
+
+    private async Task AddRoom()
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(newRoom.Number) || string.IsNullOrWhiteSpace(newRoom.Type))
+            {
+                addMessage = "Номер и тип обязательны";
+                addSuccess = false;
+                return;
+            }
+
+            if (newRoom.PricePerNight <= 0 || newRoom.Capacity <= 0)
+            {
+                addMessage = "Цена и вместимость должны быть больше 0";
+                addSuccess = false;
+                return;
+            }
+
+            var added = await RoomService.AddAsync(newRoom);
+            Console.WriteLine($"Добавлен номер: Id={added.Id}, Number={added.Number}");
+            
+            rooms = await RoomService.GetAllAsync();
+            Console.WriteLine($"Всего номеров: {rooms?.Count}");
+            
+            addMessage = $"Номер {added.Number} добавлен!";
+            addSuccess = true;
+            newRoom = new Room() { IsAvailable = true };
+        }
+        catch (Exception ex)
+        {
+            addMessage = $"Ошибка: {ex.Message}";
+            addSuccess = false;
+            Console.WriteLine($"Ошибка добавления: {ex}");
+        }
+    }
+
+    private async Task DeleteRoom(int id)
+    {
+        try
+        {
+            await RoomService.DeleteAsync(id);
+            rooms = await RoomService.GetAllAsync();
+            addMessage = "Номер удалён";
+            addSuccess = true;
+        }
+        catch (Exception ex)
+        {
+            addMessage = $"Ошибка удаления: {ex.Message}";
+            addSuccess = false;
+        }
+    }
+}

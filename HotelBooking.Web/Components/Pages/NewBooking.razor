@@ -1,0 +1,144 @@
+﻿@page "/bookings/new"
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+@using HotelBooking.Core.Models
+@using HotelBooking.Core.Services
+@inject IRoomService RoomService
+@inject IBookingService BookingService
+@inject AuthenticationStateProvider AuthStateProvider
+
+<PageTitle>Новое бронирование</PageTitle>
+
+<h3>Новое бронирование</h3>
+
+<div class="mb-3">
+    <label class="form-label">Дата заезда</label>
+    <input type="date" class="form-control" @bind="bookingModel.CheckInDate" />
+</div>
+
+<div class="mb-3">
+    <label class="form-label">Дата выезда</label>
+    <input type="date" class="form-control" @bind="bookingModel.CheckOutDate" />
+</div>
+
+<button class="btn btn-secondary mb-3" @onclick="FindRooms">Найти номера</button>
+
+@if (isLoading)
+{
+    <p><em>Поиск...</em></p>
+}
+else if (availableRooms != null && !availableRooms.Any())
+{
+    <p class="text-danger">Нет доступных номеров</p>
+}
+else if (availableRooms != null)
+{
+    <div class="mb-3">
+        <label class="form-label">Номер</label>
+        <select class="form-select" @bind="bookingModel.RoomId">
+            <option value="0">-- Выберите номер --</option>
+            @foreach (var room in availableRooms)
+            {
+                <option value="@room.Id">@room.Number - @room.Type (@room.PricePerNight.ToString("C")/ночь)</option>
+            }
+        </select>
+    </div>
+
+    <button class="btn btn-primary mb-3" @onclick="CreateBooking">Забронировать</button>
+}
+
+@if (!string.IsNullOrEmpty(message))
+{
+    <div class="alert @(isSuccess ? "alert-success" : "alert-danger")" role="alert">
+        @message
+    </div>
+}
+
+@code {
+    private BookingFormModel bookingModel = new();
+    private List<Room>? availableRooms;
+    private string? message;
+    private bool isSuccess;
+    private bool isLoading;
+    private string? currentUserId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        currentUserId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+    }
+
+    private async Task FindRooms()
+    {
+        message = null;
+        isLoading = true;
+        availableRooms = null;
+        StateHasChanged();
+
+        try
+        {
+            if (bookingModel.CheckInDate >= bookingModel.CheckOutDate)
+            {
+                message = "Дата выезда должна быть позже даты заезда";
+                isSuccess = false;
+                isLoading = false;
+                return;
+            }
+
+            availableRooms = await RoomService.GetAvailableAsync(bookingModel.CheckInDate, bookingModel.CheckOutDate);
+            
+            if (availableRooms == null || !availableRooms.Any())
+            {
+                message = "Нет доступных номеров на выбранные даты";
+                isSuccess = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            message = $"Ошибка: {ex.Message}";
+            isSuccess = false;
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task CreateBooking()
+    {
+        try
+        {
+            if (bookingModel.RoomId == 0)
+            {
+                message = "Выберите номер";
+                isSuccess = false;
+                return;
+            }
+
+            var booking = await BookingService.CreateAsync(
+                bookingModel.RoomId,
+                currentUserId!,
+                bookingModel.CheckInDate,
+                bookingModel.CheckOutDate);
+
+            message = $"Бронирование №{booking.Id} создано! Сумма: {booking.TotalPrice:C}";
+            isSuccess = true;
+            bookingModel = new BookingFormModel();
+            availableRooms = null;
+        }
+        catch (Exception ex)
+        {
+            message = $"Ошибка: {ex.Message}";
+            isSuccess = false;
+        }
+    }
+
+    public class BookingFormModel
+    {
+        public int RoomId { get; set; }
+        public DateTime CheckInDate { get; set; } = DateTime.Today;
+        public DateTime CheckOutDate { get; set; } = DateTime.Today.AddDays(1);
+    }
+}
