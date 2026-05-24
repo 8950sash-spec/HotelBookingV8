@@ -6,7 +6,7 @@
 
 
 
-\## Технологии
+\#Технологии
 
 
 
@@ -24,7 +24,7 @@
 
 
 
-\## Архитектура
+\#Архитектура
 
 
 
@@ -34,11 +34,11 @@
 
 
 
-\## Запуск
+\# Запуск
 
 
 
-\### Локально
+\# Локально
 
 
 
@@ -49,10 +49,12 @@ dotnet restore
 dotnet ef database update --project HotelBooking.Core --startup-project HotelBooking.Web
 
 dotnet run --project HotelBooking.Web 
+```
 
 
-
-\## Демо-данные
+\ Демо-данные
 
 Админ: admin@admin.hotel / Admhotel1!
+
+#Важно! Если база данных отвалилась - смените путь к дб в appsettings.json (Для докера путь к дб был изменен)
 
